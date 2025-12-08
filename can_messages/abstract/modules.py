@@ -17,3 +17,5 @@ class Module(StrEnum):
 	VESC = "VESC"
 	GPIO = "GPIO"
 	GEIGER = "GEIGER"
+	MODUCARD = "ModuCard"
+	SUSPENSION = "Suspension"
