@@ -1,9 +1,9 @@
 #pragma once
 
 
-#include <vector>
 #include <array>
 #include <memory>
+#include <vector>
 
 
 namespace canc {
@@ -83,7 +83,7 @@ public:
       return false;
     }
     size_t size_to_copy =
-    (segment_index < total_segments) ? frame_size : static_cast<size_t>(total_size - segment_index * frame_size);
+    (segment_index < total_segments - 1) ? frame_size : static_cast<size_t>(total_size - segment_index * frame_size);
     std::memcpy(_rx_buffor + segment_index * frame_size, msg.data + 1, size_to_copy);
     _decoded_parts[segment_index] = true;
 
@@ -100,7 +100,7 @@ public:
   }
 
 private:
-  const constexpr size_t frame_size = FdCan ? 63 : 7;
+  static const constexpr size_t frame_size = FdCan ? 63 : 7;
   uint8_t _rx_buffor[sizeof(Type)];
   bool _decoded_parts[sizeof(Type) / frame_size + 1]{ false };
   uint32_t _frame_id;
