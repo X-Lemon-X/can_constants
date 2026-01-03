@@ -17,10 +17,21 @@ struct CanMsg {
 
 
 /// @brief Class to send structures over CAN bus
-/// @tparam T the structure type to be sent over CAN
-/// @note T must have static member functions.
-/// if fra
-/// it maximum size must be less then 1792 bytes
+///
+/// **CAN Frame Data Structure:**
+/// ```
+/// ┌─────────────────┬────────────┬─────────────┐
+/// │ Field           │ Size       │ Notes       │
+/// ├─────────────────┼────────────┼─────────────┤
+/// │ CAN ID          │ Variable   │ Frame ID    │
+/// │ Segment Index   │ 1 byte     │ Max 256     │
+/// │ Structure Data  │ 7/63 bytes | CAN/FDCAN   │
+/// └─────────────────┴────────────┴─────────────┘
+/// ```
+///
+/// @tparam T The structure type to be sent over CAN
+/// @note Maximum size of a structure to be send must be less than
+/// 1792 bytes for CAN2.0, or 16128 bytes for FDCAN
 template <typename T, bool FdCan = false> class CanStructureSender {
   using Type = T;
 
@@ -35,18 +46,9 @@ public:
   }
   ~CanStructureSender() = default;
 
-
-  ///
-  /// CAN DATA STRUCTURE
-  /// [ can id ] - Frame ID
-  ///
-  ///  ...  other can slob.
-  ///
-  /// [  1 byte  ] - Segment Index  (max is 256 segments)
-  /// [  N bytes ] - Structure Data Segment (max is 7 bytes for CAN and 63 bytes for FDCAN for each can frame)
-  ///
-  ///
-
+  /// @brief Pack the structure into CAN messages
+  /// @param structure The structure to be packed
+  /// @return Vector of CAN messages ready to be sent
   std::vector<CanMsg> pack(const Type &structure) {
     std::vector<CanMsg> messages;
     size_t total_size = sizeof(Type);
@@ -67,6 +69,9 @@ public:
     return messages;
   }
 
+  /// @brief Prepare the unpacker for a new structure
+  ///
+  /// This will clear the internal buffers and prepare for a new unpacking process
   void start_unpacking() {
     std::memset(_rx_buffor, 0, sizeof(Type));
     std::memset(_decoded_parts, 0, sizeof(_decoded_parts));
@@ -74,6 +79,9 @@ public:
 
   /// @brief This will unpack the structure from the CAN message
   /// @param msg received CAN message don't have to be in order
+  ///
+  /// @note This function shoule be called for each received CAN message with the correct frame ID
+  /// It will also clean internal buffers when the structure is fully unpacked
   /// @return true if unpacking was finished false otherwise
   bool unpack(const CanMsg &msg) {
     size_t total_size     = sizeof(Type);
@@ -92,16 +100,19 @@ public:
         return false;
       }
     }
+    _struct = *reinterpret_cast<Type *>(_rx_buffor);
+    start_unpacking();
     return true;
   }
 
-  Type get_unpacked_structure() const {
-    return *reinterpret_cast<const Type *>(_rx_buffor);
+  const Type &get_unpacked_structure() const {
+    return _struct;
   }
 
 private:
   static const constexpr size_t frame_size = FdCan ? 63 : 7;
   uint8_t _rx_buffor[sizeof(Type)];
+  Type _struct;
   bool _decoded_parts[sizeof(Type) / frame_size + 1]{ false };
   uint32_t _frame_id;
 };
