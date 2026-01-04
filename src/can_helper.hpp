@@ -36,7 +36,7 @@ template <typename T, bool FdCan = false> class CanStructureSender {
   using Type = T;
 
 public:
-  CanStructureSender(uint32_t can_id) : _frame_id(can_id) {
+  CanStructureSender() {
     if constexpr(FdCan) {
       static_assert(sizeof(Type) <= 16128,
                     "CanStructureSender: Structure size exceeds maximum Extended CAN data size");
@@ -49,14 +49,14 @@ public:
   /// @brief Pack the structure into CAN messages
   /// @param structure The structure to be packed
   /// @return Vector of CAN messages ready to be sent
-  std::vector<CanMsg> pack(const Type &structure) {
+  std::vector<CanMsg> pack(uint32_t can_id, const Type &structure) {
     std::vector<CanMsg> messages;
     size_t total_size = sizeof(Type);
     size_t offset     = 0;
     size_t index      = 0;
     while(total_size > 0) {
       CanMsg msg;
-      msg.id    = _frame_id;
+      msg.id    = can_id;
       msg.fdcan = FdCan;
       msg.size  = frame_size + 1; // +1 for segment index size all the frames are -1 to fit the index data and
       uint8_t size_to_copy = (total_size > frame_size) ? frame_size : static_cast<uint8_t>(total_size);
@@ -114,7 +114,6 @@ private:
   uint8_t _rx_buffor[sizeof(Type)];
   Type _struct;
   bool _decoded_parts[sizeof(Type) / frame_size + 1]{ false };
-  uint32_t _frame_id;
 };
 
 
