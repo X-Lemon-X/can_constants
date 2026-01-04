@@ -24,4 +24,5 @@ include_directories(
 # Include directories
 target_include_directories(can_constants PUBLIC
   ${PROJECT_SOURCE_DIR}/can_messages/output
+  ${PROJECT_SOURCE_DIR}/src
 )
