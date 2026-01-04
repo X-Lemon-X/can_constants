@@ -68,6 +68,10 @@ base_db = [
     Float('position', 0, 'rad'),
     Float('velocity', 32, 'rad/s'),
   ]),
+	
+  Message(0x00B, 'get_torque', senders=[Module.KONARM], receivers=[Module.JETSON], signals=[
+    Float('torque', 0, 'Nm'),
+  ]),
 
   Message(0x004, 'clear_errors', senders=[Module.JETSON], receivers=[Module.KONARM], signals=[]),
 	
@@ -92,13 +96,11 @@ base_db = [
   ]),
 
 Message(0x007, 'get_config', senders=[Module.JETSON], receivers=[Module.KONARM], signals=[
-              Enum('ask_for_config', 0, 8, list=config_status),
+  Unsigned('config_part', 0, 64),
 ]),
 
 Message(0x008, 'send_config', senders=[Module.KONARM], receivers=[Module.JETSON], signals=[
-
-               Enum('sending_config', 0, 8, list=config_status),
-               Signed('config_status', 8, 32),
+  Unsigned('config_part', 0, 64),
 ]),
 
 Message(0x009, 'set_and_reset', senders=[Module.JETSON], receivers=[Module.KONARM], signals=[]),
