@@ -72,6 +72,10 @@ base_db = [
   Message(0x00B, 'get_torque', senders=[Module.KONARM], receivers=[Module.JETSON], signals=[
     Float('torque', 0, 'Nm'),
   ]),
+	
+  Message(0x00C, 'set_torque', senders=[Module.KONARM], receivers=[Module.JETSON], signals=[
+    Float('torque', 0, 'Nm'),
+  ]),
 
   Message(0x004, 'clear_errors', senders=[Module.JETSON], receivers=[Module.KONARM], signals=[]),
 	
